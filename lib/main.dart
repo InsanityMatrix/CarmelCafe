@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:carmel_cafe/globals.dart' as globals;
 
 void main() => runApp(MyApp());
 
@@ -61,7 +62,9 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.shopping_cart),
         tooltip: 'Your Cart',
-        onPressed: () {},
+        onPressed: () {
+          goToCart(context);
+        },
       ),
     );
   }
@@ -156,6 +159,8 @@ class CookiePage extends StatefulWidget {
 
 class _CookiePageState extends State<CookiePage> {
   int _quantity = 0;
+  double _price = 1.00;
+  double _total = 0;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -199,10 +204,10 @@ class _CookiePageState extends State<CookiePage> {
                   onPressed: () {
                     decreaseQuantity();
                   }),
-                  Container(
-                    padding: EdgeInsets.only(left: 40, right: 40),
-                    child: Text("$_quantity"),
-                  ),
+              Container(
+                padding: EdgeInsets.only(left: 40, right: 40),
+                child: Text("$_quantity"),
+              ),
               FlatButton(
                   color: Colors.blue,
                   child: Text(
@@ -216,10 +221,32 @@ class _CookiePageState extends State<CookiePage> {
                   }),
             ],
           ),
+          ButtonBar(
+            alignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                width: MediaQuery.of(context).size.width / 2,
+                child: RaisedButton(
+                  color: Colors.blue,
+                  padding: EdgeInsets.only(
+                      top: 6.0, bottom: 6.0, right: 12.0, left: 12.0),
+                  child: Text(
+                    "Add to Cart (\$" + _total.toStringAsFixed(2) + ")",
+                    textAlign: TextAlign.center,
+                  ),
+                  onPressed: () {
+                    addProduct("Cookies", _price, _quantity);
+                  },
+                ),
+              ),
+            ],
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-          onPressed: () {},
+          onPressed: () {
+            goToCart(context);
+          },
           tooltip: 'Your Cart',
           child: Icon(Icons.shopping_cart)),
     );
@@ -228,12 +255,98 @@ class _CookiePageState extends State<CookiePage> {
   void increaseQuantity() {
     setState(() {
       _quantity++;
+      _total = _quantity * _price;
     });
   }
 
   void decreaseQuantity() {
     setState(() {
-      _quantity--;
+      if (_quantity > 0) {
+        _quantity--;
+      }
+      _total = _quantity * _price;
     });
   }
+}
+
+class CartPage extends StatefulWidget {
+  CartPage({Key key, this.title}) : super(key: key);
+
+  final String title;
+  @override
+  _CartPageState createState() => _CartPageState();
+}
+
+class _CartPageState extends State<CartPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
+      body: ListView.builder(
+          itemCount: globals.cart.length,
+          itemBuilder: (BuildContext ctxt, int index) {
+            return Container(
+              padding: EdgeInsets.only(
+                  left: 16.0, right: 16.0, top: 10.0, bottom: 6.0),
+              margin: EdgeInsets.only(left: 6.0, right: 6.0),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(width: 2.0, color: Colors.grey),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text(
+                    globals.cart[index].name,
+                    textAlign: TextAlign.left,
+                    textScaleFactor: 1.8,
+                  ),
+                  ButtonBar(
+                    alignment: MainAxisAlignment.start,
+                    children: <Widget>[
+                      Container(
+                        padding: EdgeInsets.all(6.0),
+                        child: Text(
+                          "x" + globals.cart[index].quantity.toString(),
+                          textAlign: TextAlign.right,
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.all(6.0),
+                        child: Text(
+                          "\$" + (globals.cart[index].quantity * globals.cart[index].price).toStringAsFixed(2),
+                        ),
+                      ),
+                      FlatButton(
+                        color: Colors.red,
+                        child: Icon(Icons.remove),
+                        onPressed: () {
+                          setState(() {
+                            globals.cart.removeAt(index);
+                          });
+                        },
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            );
+          }),
+    );
+  }
+}
+
+void addProduct(String name, double price, int quantity) {
+  var newProduct = new globals.Product(name, price, quantity);
+  globals.cart.add(newProduct);
+}
+
+void goToCart(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => CartPage(title: "Your Order")),
+  );
 }
