@@ -37,10 +37,17 @@ Future<List<Product>> getSectionProducts(String section) async {
     } else {
       options = i['Options'];
     }
-    c.add(new Product(i['ProductID'], i['Name'], i['Price'], options,i['Image']));
+    c.add(new Product(i['ProductID'], i['Name'], i['Price'].toDouble(), options,i['Image']));
   });
+  return c;
 }
-
+Future<Product> getProduct(String section, int pID) async {
+  var url = ip + '/product';
+  dynamic response = await http.post(url, body: {"Section":section,"ProductID":pID.toString()});
+  var decoded = jsonDecode(response.body);
+  Product product = new Product(decoded['ProductID'], decoded['Name'], decoded['Price'].toDouble(), decoded['Options'],decoded['Image']);
+  return product;
+}
 
 class Product {
   int id;

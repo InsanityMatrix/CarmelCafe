@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:carmel_cafe/globals.dart' as globals;
 
 void main() => runApp(MyApp());
+
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
@@ -59,17 +60,19 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+
   Widget _futureGrid() {
     return FutureBuilder<List<globals.Section>>(
       future: globals.getSections(),
-      builder: (BuildContext context, AsyncSnapshot<List<globals.Section>> snapshot) {
-        switch(snapshot.connectionState) {
+      builder: (BuildContext context,
+          AsyncSnapshot<List<globals.Section>> snapshot) {
+        switch (snapshot.connectionState) {
           case ConnectionState.none:
             return new Text('loading..');
           case ConnectionState.waiting:
             return new Text('loading..');
           default:
-            if(snapshot.hasError) {
+            if (snapshot.hasError) {
               return new Text("Report this Error: ${snapshot.error}");
             } else {
               return _buildNetItemGrid(context, snapshot.data);
@@ -78,23 +81,26 @@ class _MyHomePageState extends State<MyHomePage> {
       },
     );
   }
-  Widget _buildNetItemGrid(BuildContext context, List<globals.Section> sections) {
+
+  Widget _buildNetItemGrid(
+      BuildContext context, List<globals.Section> sections) {
     return GridView.builder(
       physics: ScrollPhysics(),
       shrinkWrap: true,
       itemCount: sections.length,
-      gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+      gridDelegate:
+          new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
       itemBuilder: (BuildContext ctxt, int index) {
         return Container(
           child: Card(
-            shape: RoundedRectangleBorder(
-              side: new BorderSide(color: Colors.grey, width: 0.5),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: Column(
-              children: <Widget>[
-                Expanded(child: Image.network(sections[index].imgLink)),
-                Container(
+              shape: RoundedRectangleBorder(
+                side: new BorderSide(color: Colors.grey, width: 0.5),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Column(
+                children: <Widget>[
+                  Expanded(child: Image.network(sections[index].imgLink)),
+                  Container(
                     margin: const EdgeInsets.only(top: 0),
                     child: RaisedButton(
                       child: Text(sections[index].name),
@@ -103,9 +109,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       },
                     ),
                   ),
-              ],
-            )
-          ),
+                ],
+              )),
         );
       },
     );
@@ -113,12 +118,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void navigateSection(BuildContext context, String section) {
     Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => SectionPage(title: section)),
-  );
+      context,
+      MaterialPageRoute(builder: (context) => SectionPage(title: section)),
+    );
   }
 }
-
 
 /* COFFEE */
 class SectionPage extends StatefulWidget {
@@ -130,7 +134,6 @@ class SectionPage extends StatefulWidget {
 }
 
 class _SectionPageState extends State<SectionPage> {
- 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -144,10 +147,10 @@ class _SectionPageState extends State<SectionPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-            goToCart(context);
-          },
-          tooltip: 'Your Cart',
-          child: Icon(Icons.shopping_cart),
+          goToCart(context);
+        },
+        tooltip: 'Your Cart',
+        child: Icon(Icons.shopping_cart),
       ),
     );
   }
@@ -155,14 +158,15 @@ class _SectionPageState extends State<SectionPage> {
   Widget _futureGrid() {
     return FutureBuilder<List<globals.Product>>(
       future: globals.getSectionProducts(widget.title),
-      builder: (BuildContext context, AsyncSnapshot<List<globals.Product>> snapshot) {
-        switch(snapshot.connectionState) {
+      builder: (BuildContext context,
+          AsyncSnapshot<List<globals.Product>> snapshot) {
+        switch (snapshot.connectionState) {
           case ConnectionState.none:
             return new Text('loading..');
           case ConnectionState.waiting:
             return new Text('loading..');
           default:
-            if(snapshot.hasError) {
+            if (snapshot.hasError) {
               return new Text("Report this Error: ${snapshot.error}");
             } else {
               return _buildNetItemGrid(context, snapshot.data);
@@ -171,37 +175,170 @@ class _SectionPageState extends State<SectionPage> {
       },
     );
   }
-  Widget _buildNetItemGrid(BuildContext context, List<globals.Product> products) {
+
+  Widget _buildNetItemGrid(
+      BuildContext context, List<globals.Product> products) {
     return GridView.builder(
       physics: ScrollPhysics(),
       shrinkWrap: true,
       itemCount: products.length,
-      gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+      gridDelegate:
+          new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
       itemBuilder: (BuildContext ctxt, int index) {
         return Container(
           child: Card(
-            shape: RoundedRectangleBorder(
-              side: new BorderSide(color: Colors.grey, width: 0.5),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: Column(
-              children: <Widget>[
-                Expanded(child: Image.network(products[index].image)),
-                Container(
+              shape: RoundedRectangleBorder(
+                side: new BorderSide(color: Colors.grey, width: 0.5),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Column(
+                children: <Widget>[
+                  Expanded(child: Image.network(products[index].image)),
+                  Container(
                     margin: const EdgeInsets.only(top: 0),
                     child: RaisedButton(
-                      child: Text(products[index].name),
+                      child: Text(products[index].name,
+                          textAlign: TextAlign.center),
                       onPressed: () {
-                        //TODO: Navigate to product
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ProductPage(
+                                  title: widget.title,
+                                  pID: products[index].id)),
+                        );
                       },
                     ),
                   ),
-              ],
-            )
-          ),
+                ],
+              )),
         );
       },
     );
+  }
+}
+
+/* PRODUCT PAGE */
+class ProductPage extends StatefulWidget {
+  ProductPage({Key key, this.title, this.pID}) : super(key: key);
+
+  final String title;
+  final int pID;
+  @override
+  _ProductPageState createState() => _ProductPageState();
+}
+
+class _ProductPageState extends State<ProductPage> {
+  int quantity = 0;
+  double total = 0.0;
+  globals.Product p;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
+      body: _buildProduct(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          goToCart(context);
+        },
+        tooltip: 'Your Cart',
+        child: Icon(Icons.shopping_cart),
+      ),
+    );
+  }
+
+  Widget _buildProduct() {
+    return FutureBuilder<globals.Product>(
+      future: globals.getProduct(widget.title, widget.pID),
+      builder: (BuildContext context, AsyncSnapshot<globals.Product> snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+            return new Text('loading..');
+          case ConnectionState.waiting:
+            return new Text('loading..');
+          default:
+            if (snapshot.hasError) {
+              return new Text("Report this Error: ${snapshot.error}");
+            } else {
+              return _buildProductLayout(context, snapshot.data);
+            }
+        }
+      },
+    );
+  }
+
+  Widget _buildProductLayout(BuildContext context, globals.Product product) {
+    p = product;
+    return Column(
+      children: <Widget>[
+        Container(
+          width: MediaQuery.of(context).size.width,
+          height: 150,
+          child: Image.network(
+            product.image,
+            fit: BoxFit.fill,
+          ),
+        ),
+        Container(
+          width: MediaQuery.of(context).size.width,
+          color: Theme.of(context).primaryColor,
+          padding: EdgeInsets.all(6.0),
+          child: Text(
+            product.name,
+            style: Theme.of(context).textTheme.title,
+            textAlign: TextAlign.center,
+          ),
+        ),
+        ButtonBar(
+          alignment: MainAxisAlignment.center,
+          children: <Widget>[
+            FlatButton(
+              color: Theme.of(context).accentColor,
+              padding: EdgeInsets.all(5.0),
+              child: Icon(
+                Icons.remove,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                decreaseQuantity();
+              },
+            ),
+            Container(
+              padding:
+                  EdgeInsets.only(left: 8.0, right: 8.0, top: 5.0, bottom: 5.0),
+              child: Text(quantity.toString()),
+            ),
+            FlatButton(
+              color: Theme.of(context).accentColor,
+              padding: EdgeInsets.all(5.0),
+              child: Icon(
+                Icons.add,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                increaseQuantity();
+              },
+            ),
+          ],
+        )
+      ],
+    );
+  }
+
+  void increaseQuantity() {
+    setState(() {
+      total = ++quantity * p.price;
+    });
+  }
+
+  void decreaseQuantity() {
+    if (quantity > 0) {
+      setState(() {
+        total = --quantity * p.price;
+      });
+    }
   }
 }
 
@@ -260,14 +397,14 @@ class _CartPageState extends State<CartPage> {
                           Container(
                             padding: EdgeInsets.all(6.0),
                             child: Text(
-                              "x3",// + globals.cart[index].quantity.toString(),
+                              "x3", // + globals.cart[index].quantity.toString(),
                               textAlign: TextAlign.right,
                             ),
                           ),
                           Container(
                             padding: EdgeInsets.all(6.0),
                             child: Text(
-                              "\$",/* +
+                              "\$", /* +
                                   (globals.cart[index].quantity *
                                           globals.cart[index].price)
                                       .toStringAsFixed(2),*/
@@ -302,7 +439,6 @@ class _CartPageState extends State<CartPage> {
           ),
         ),
       ],
-      
     );
   }
 }
