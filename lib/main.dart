@@ -229,6 +229,7 @@ class ProductPage extends StatefulWidget {
 }
 
 class _ProductPageState extends State<ProductPage> {
+  int _radioValue1 = -1;
   int quantity = 0;
   double total = 0.0;
   globals.Product p;
@@ -267,6 +268,34 @@ class _ProductPageState extends State<ProductPage> {
         }
       },
     );
+  }
+
+  List<Widget> _buildOptions(String options) {
+    List<Widget> optionList = new List();
+    RegExp exp = new RegExp(r"#(\w+\s*\w*)");
+    Iterable<RegExpMatch> matches = exp.allMatches(options);
+    for (int i = 0; i < matches.length; i++) {
+      String option = matches.elementAt(i).group(1);
+      Widget row = new Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Radio(
+            value: i,
+            groupValue: _radioValue1,
+            onChanged: _handleRadioValueChange5,
+          ),
+          Text(option),
+        ],
+      );
+      optionList.add(row);
+    }
+    return optionList;
+  }
+
+  void _handleRadioValueChange5(int value) {
+    setState(() {
+      _radioValue1 = value;
+    });
   }
 
   Widget _buildProductLayout(BuildContext context, globals.Product product) {
@@ -354,7 +383,85 @@ class _ProductPageState extends State<ProductPage> {
       );
     } else {
       //Use Regex to parse options and put in radio buttons
-      return Column();
+      List<Widget> options = _buildOptions(product.options);
+      return Column(
+        children: <Widget>[
+          Container(
+            width: MediaQuery.of(context).size.width,
+            height: 150,
+            child: Image.network(
+              product.image,
+              fit: BoxFit.fill,
+            ),
+          ),
+          Container(
+            width: MediaQuery.of(context).size.width,
+            color: Theme.of(context).primaryColor,
+            padding: EdgeInsets.all(6.0),
+            child: Text(
+              product.name,
+              style: Theme.of(context).textTheme.title,
+              textAlign: TextAlign.center,
+            ),
+          ),
+          ButtonBar(
+            alignment: MainAxisAlignment.center,
+            children: <Widget>[
+              FlatButton(
+                color: Theme.of(context).accentColor,
+                padding: EdgeInsets.all(5.0),
+                child: Icon(
+                  Icons.remove,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  decreaseQuantity();
+                },
+              ),
+              Container(
+                padding: EdgeInsets.only(
+                    left: 8.0, right: 8.0, top: 5.0, bottom: 5.0),
+                child: Text(quantity.toString()),
+              ),
+              FlatButton(
+                color: Theme.of(context).accentColor,
+                padding: EdgeInsets.all(5.0),
+                child: Icon(
+                  Icons.add,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  increaseQuantity();
+                },
+              ),
+            ],
+          ),
+          Expanded(
+            child: ListView.builder(
+                itemCount: options.length,
+                itemBuilder: (BuildContext ctxt, int index) {
+                  return options[index];
+                }),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              RaisedButton(
+                  padding: EdgeInsets.all(8.0),
+                  color: Theme.of(context).primaryColor,
+                  child: Text(
+                    "Add to Cart ($total)",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white, fontSize: 20.0),
+                  ),
+                  onPressed: () {
+                    addProduct(p, quantity);
+                  }),
+            ],
+          )
+        ],
+      );
     }
   }
 
@@ -420,7 +527,7 @@ class _CartPageState extends State<CartPage> {
                       Text(
                         globals.cart[index].product.name,
                         textAlign: TextAlign.left,
-                        textScaleFactor: 1.8,
+                        textScaleFactor: 1.4,
                       ),
                       ButtonBar(
                         alignment: MainAxisAlignment.start,
