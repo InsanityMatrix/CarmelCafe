@@ -11,7 +11,7 @@ class Section {
   Section.withImage(this.id, this.name, this.total, this.imgLink);
 }
 String ip = "http://165.227.91.153:25510";
-List<Product> cart = List<Product>();
+List<Purchase> cart = List<Purchase>();
 
 
 Future<List<Section>> getSections() async {
@@ -56,4 +56,10 @@ class Product {
   String options;
   String image;
   Product(this.id, this.name, this.price, this.options, this.image);
+}
+
+class Purchase {
+  Product product;
+  int quantity;
+  Purchase(this.product, this.quantity);
 }

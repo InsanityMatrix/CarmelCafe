@@ -271,60 +271,91 @@ class _ProductPageState extends State<ProductPage> {
 
   Widget _buildProductLayout(BuildContext context, globals.Product product) {
     p = product;
-    return Column(
-      children: <Widget>[
-        Container(
-          width: MediaQuery.of(context).size.width,
-          height: 150,
-          child: Image.network(
-            product.image,
-            fit: BoxFit.fill,
+    if (quantity == 0) {
+      //Check if product already in cart
+      for (int i = 0; i < globals.cart.length; i++) {
+        if (globals.cart[i].product.id == p.id) {
+          quantity = globals.cart[i].quantity;
+          total = p.price * quantity;
+        }
+      }
+    }
+    if (product.options == null || product.options == '') {
+      return Column(
+        children: <Widget>[
+          Container(
+            width: MediaQuery.of(context).size.width,
+            height: 150,
+            child: Image.network(
+              product.image,
+              fit: BoxFit.fill,
+            ),
           ),
-        ),
-        Container(
-          width: MediaQuery.of(context).size.width,
-          color: Theme.of(context).primaryColor,
-          padding: EdgeInsets.all(6.0),
-          child: Text(
-            product.name,
-            style: Theme.of(context).textTheme.title,
-            textAlign: TextAlign.center,
+          Container(
+            width: MediaQuery.of(context).size.width,
+            color: Theme.of(context).primaryColor,
+            padding: EdgeInsets.all(6.0),
+            child: Text(
+              product.name,
+              style: Theme.of(context).textTheme.title,
+              textAlign: TextAlign.center,
+            ),
           ),
-        ),
-        ButtonBar(
-          alignment: MainAxisAlignment.center,
-          children: <Widget>[
-            FlatButton(
-              color: Theme.of(context).accentColor,
-              padding: EdgeInsets.all(5.0),
-              child: Icon(
-                Icons.remove,
-                color: Colors.white,
+          ButtonBar(
+            alignment: MainAxisAlignment.center,
+            children: <Widget>[
+              FlatButton(
+                color: Theme.of(context).accentColor,
+                padding: EdgeInsets.all(5.0),
+                child: Icon(
+                  Icons.remove,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  decreaseQuantity();
+                },
               ),
-              onPressed: () {
-                decreaseQuantity();
-              },
-            ),
-            Container(
-              padding:
-                  EdgeInsets.only(left: 8.0, right: 8.0, top: 5.0, bottom: 5.0),
-              child: Text(quantity.toString()),
-            ),
-            FlatButton(
-              color: Theme.of(context).accentColor,
-              padding: EdgeInsets.all(5.0),
-              child: Icon(
-                Icons.add,
-                color: Colors.white,
+              Container(
+                padding: EdgeInsets.only(
+                    left: 8.0, right: 8.0, top: 5.0, bottom: 5.0),
+                child: Text(quantity.toString()),
               ),
-              onPressed: () {
-                increaseQuantity();
-              },
-            ),
-          ],
-        )
-      ],
-    );
+              FlatButton(
+                color: Theme.of(context).accentColor,
+                padding: EdgeInsets.all(5.0),
+                child: Icon(
+                  Icons.add,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  increaseQuantity();
+                },
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              RaisedButton(
+                  padding: EdgeInsets.all(8.0),
+                  color: Theme.of(context).primaryColor,
+                  child: Text(
+                    "Add to Cart ($total)",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white, fontSize: 20.0),
+                  ),
+                  onPressed: () {
+                    addProduct(p, quantity);
+                  }),
+            ],
+          )
+        ],
+      );
+    } else {
+      //Use Regex to parse options and put in radio buttons
+      return Column();
+    }
   }
 
   void increaseQuantity() {
@@ -387,7 +418,7 @@ class _CartPageState extends State<CartPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Text(
-                        globals.cart[index].name,
+                        globals.cart[index].product.name,
                         textAlign: TextAlign.left,
                         textScaleFactor: 1.8,
                       ),
@@ -397,17 +428,17 @@ class _CartPageState extends State<CartPage> {
                           Container(
                             padding: EdgeInsets.all(6.0),
                             child: Text(
-                              "x3", // + globals.cart[index].quantity.toString(),
+                              "x" + globals.cart[index].quantity.toString(),
                               textAlign: TextAlign.right,
                             ),
                           ),
                           Container(
                             padding: EdgeInsets.all(6.0),
                             child: Text(
-                              "\$", /* +
+                              "\$" +
                                   (globals.cart[index].quantity *
-                                          globals.cart[index].price)
-                                      .toStringAsFixed(2),*/
+                                          globals.cart[index].product.price)
+                                      .toStringAsFixed(2),
                             ),
                           ),
                           FlatButton(
@@ -443,16 +474,15 @@ class _CartPageState extends State<CartPage> {
   }
 }
 
-void addProduct(String name, double price, int quantity) {
-  /*
-  var newProduct = new globals.Product(name, price, quantity);
-  for(int i = 0; i < globals.cart.length; i++) {
-    if(globals.cart[i].name == name) {
+void addProduct(globals.Product product, int quantity) {
+  var newPurchase = new globals.Purchase(product, quantity);
+  for (int i = 0; i < globals.cart.length; i++) {
+    if (globals.cart[i].product.name == product.name) {
       globals.cart.removeAt(i);
     }
   }
-  globals.cart.add(newProduct);
-  */
+  globals.cart.add(newPurchase);
+
   print("Added Product");
 }
 
