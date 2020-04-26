@@ -12,7 +12,9 @@ class Section {
 }
 String ip = "http://165.227.91.153:25510";
 List<Purchase> cart = List<Purchase>();
-
+String cartJSON() {
+  return jsonEncode(cart);
+}
 
 Future<List<Section>> getSections() async {
   var url = ip + '/products';
@@ -56,6 +58,14 @@ class Product {
   String options;
   String image;
   Product(this.id, this.name, this.price, this.options, this.image);
+
+  Map toJson() => {
+    'ProductID': id,
+    'Name': name,
+    'Price': price,
+    'Options': options,
+    'Image': image,
+  };
 }
 
 class Purchase {
@@ -72,5 +82,14 @@ class Purchase {
     } else {
       return true;
     }
+  }
+
+  Map toJson() {
+    Map p = this.product.toJson();
+    return {
+    'Product':p,
+    'Quantity': quantity,
+    'Flavor': flavor,
+    };
   }
 }

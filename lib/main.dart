@@ -559,6 +559,12 @@ class _CartPageState extends State<CartPage> {
                   name = globals.cart[index].product.name + "\n(" + globals.cart[index].flavor + ")";
                 } else {
                   name = globals.cart[index].product.name;
+                  if(name.length > 15) {
+                    int lastSpace = name.lastIndexOf(" ");
+                    String firstPart = name.substring(0,lastSpace);
+                    String secondPart = "\n" + name.substring(lastSpace+1);
+                    name = firstPart + secondPart;
+                  }
                 }
                 return Container(
                   padding: EdgeInsets.only(
@@ -617,7 +623,11 @@ class _CartPageState extends State<CartPage> {
               EdgeInsets.only(top: 10.0, bottom: 10.0, left: 20.0, right: 20.0),
           color: Theme.of(context).primaryColor,
           onPressed: () {
-            //TODO: Purchasing logic
+            Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => CompleteOrder(title: "Complete Order")),
+                        );
           },
           child: Text(
             "Purchase",
@@ -629,6 +639,98 @@ class _CartPageState extends State<CartPage> {
   }
 }
 
+/*COMPLETE ORDER */
+class CompleteOrder extends StatefulWidget {
+  CompleteOrder({Key key, this.title}) : super(key: key);
+
+  final String title;
+  @override
+  _CompleteOrderState createState() => _CompleteOrderState();
+}
+class _CompleteOrderState extends State<CompleteOrder> {
+  final _formKey = GlobalKey<FormState>();
+  final nameController = TextEditingController();
+  final studentIDController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+        backgroundColor: Theme.of(context).primaryColor,
+      ),
+      body: Builder(builder: (BuildContext context) {
+        return Center(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: <Widget>[
+                    TextFormField(
+                      validator: (value) {
+                        if(value.isEmpty) {
+                          return 'You need to enter a name';
+                        }
+                        return null;
+                      },
+                      decoration: const InputDecoration(
+                        icon: Icon(Icons.person),
+                        labelText: 'Name',
+                      ),
+                      controller: nameController,
+                    ),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        icon: Icon(Icons.info),
+                        labelText: 'Student ID',
+                      ),
+                      validator: (value) {
+                        if(value.isEmpty) {
+                          return 'You need to enter a Student ID';
+                        }
+                        RegExp exp = new RegExp(r"[a-zA-Z]+");
+                        if(exp.hasMatch(value)) {
+                          return 'Not a valid Student ID';
+                        }
+                        return null;
+                      },
+                      controller: studentIDController,
+                    ),
+                    RaisedButton(
+                      child: Text("Order Now"),
+                      onPressed: () {
+                        if(_formKey.currentState.validate()) {
+                          Scaffold.of(context).showSnackBar(
+                            SnackBar(content: Text('Submitting Order...')),
+                          );
+                          String name = nameController.text;
+                          String studentID = studentIDController.text;
+                          String orderJSON = globals.cartJSON();
+                          print(name);
+                          print(studentID);
+                          print(orderJSON);
+
+                          globals.cart.clear();
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => MyHomePage(title: "Carmel Cafe")),
+                          );
+                          //TODO: Send this data to api to make the square order
+                        }
+                      }
+                    )
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+}
 void addProduct(globals.Product product, int quantity) {
   if(quantity == 0 ) {
     return;
