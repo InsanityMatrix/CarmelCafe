@@ -398,6 +398,10 @@ class _ProductInfoState extends State<ProductInfo> {
                   ),
                   onPressed: () {
                     addProduct(widget.product, quantity);
+                    Fluttertoast.showToast(
+                        msg: "Added to Cart",
+                        gravity: ToastGravity.CENTER,
+                      );
                   }),
             ],
           )
@@ -471,6 +475,10 @@ class _ProductInfoState extends State<ProductInfo> {
                     } else {
                       String flavor = flavors[_radioValue1];
                       addProductWithFlavor(widget.product, quantity, flavor);
+                      Fluttertoast.showToast(
+                        msg: "Added to Cart",
+                        gravity: ToastGravity.CENTER,
+                      );
                     }
                   }),
             ],
@@ -710,7 +718,6 @@ class _CompleteOrderState extends State<CompleteOrder> {
                           String orderJSON = globals.cartJSON();
                           
                           globals.sendOrder(name,studentID,orderJSON);
-
                           globals.cart.clear();
                           Navigator.pushReplacement(
                             context,
