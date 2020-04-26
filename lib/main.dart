@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:carmel_cafe/globals.dart' as globals;
-
+import 'package:fluttertoast/fluttertoast.dart';
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -229,9 +229,6 @@ class ProductPage extends StatefulWidget {
 }
 
 class _ProductPageState extends State<ProductPage> {
-  int _radioValue1 = -1;
-  int quantity = 0;
-  double total = 0.0;
   globals.Product p;
   @override
   Widget build(BuildContext context) {
@@ -270,45 +267,11 @@ class _ProductPageState extends State<ProductPage> {
     );
   }
 
-  List<Widget> _buildOptions(String options) {
-    List<Widget> optionList = new List();
-    RegExp exp = new RegExp(r"#(\w+\s*\w*)");
-    Iterable<RegExpMatch> matches = exp.allMatches(options);
-    for (int i = 0; i < matches.length; i++) {
-      String option = matches.elementAt(i).group(1);
-      Widget row = new Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Radio(
-            value: i,
-            groupValue: _radioValue1,
-            onChanged: _handleRadioValueChange5,
-          ),
-          Text(option),
-        ],
-      );
-      optionList.add(row);
-    }
-    return optionList;
-  }
 
-  void _handleRadioValueChange5(int value) {
-    setState(() {
-      _radioValue1 = value;
-    });
-  }
 
   Widget _buildProductLayout(BuildContext context, globals.Product product) {
     p = product;
-    if (quantity == 0) {
-      //Check if product already in cart
-      for (int i = 0; i < globals.cart.length; i++) {
-        if (globals.cart[i].product.id == p.id) {
-          quantity = globals.cart[i].quantity;
-          total = p.price * quantity;
-        }
-      }
-    }
+    
     if (product.options == null || product.options == '') {
       return Column(
         children: <Widget>[
@@ -330,6 +293,65 @@ class _ProductPageState extends State<ProductPage> {
               textAlign: TextAlign.center,
             ),
           ),
+          ProductInfo(product: p),
+        ],
+      );
+    } else {
+      //Use Regex to parse options and put in radio buttons
+      return Column(
+        children: <Widget>[
+          Container(
+            width: MediaQuery.of(context).size.width,
+            height: 150,
+            child: Image.network(
+              product.image,
+              fit: BoxFit.fill,
+            ),
+          ),
+          Container(
+            width: MediaQuery.of(context).size.width,
+            color: Theme.of(context).primaryColor,
+            padding: EdgeInsets.all(6.0),
+            child: Text(
+              product.name,
+              style: Theme.of(context).textTheme.title,
+              textAlign: TextAlign.center,
+            ),
+          ),
+          Expanded(child: ProductInfo(product: p),),
+        ],
+      );
+    }
+  }
+}
+
+class ProductInfo extends StatefulWidget {
+  ProductInfo({Key key, this.product}) : super(key: key);
+
+  final globals.Product product;
+  @override
+  _ProductInfoState createState() => _ProductInfoState();
+}
+
+class _ProductInfoState extends State<ProductInfo> {
+  List<String> flavors = new List<String>();
+  int _radioValue1 = -1;
+  int quantity = 0;
+  double total = 0.0;
+  @override
+  Widget build(BuildContext context) {
+    if (quantity == 0) {
+      //Check if product already in cart
+      for (int i = 0; i < globals.cart.length; i++) {
+        if (globals.cart[i].product.id == widget.product.id) {
+          quantity = globals.cart[i].quantity;
+          total = widget.product.price * quantity;
+        }
+      }
+    }
+    if (widget.product.options == null || widget.product.options == '') {
+      return Column(
+        children: <Widget>[
           ButtonBar(
             alignment: MainAxisAlignment.center,
             children: <Widget>[
@@ -370,40 +392,22 @@ class _ProductPageState extends State<ProductPage> {
                   padding: EdgeInsets.all(8.0),
                   color: Theme.of(context).primaryColor,
                   child: Text(
-                    "Add to Cart ($total)",
+                    "Add to Cart (\$"+ total.toStringAsFixed(2) + ")",
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.white, fontSize: 20.0),
                   ),
                   onPressed: () {
-                    addProduct(p, quantity);
+                    addProduct(widget.product, quantity);
                   }),
             ],
           )
         ],
       );
     } else {
-      //Use Regex to parse options and put in radio buttons
-      List<Widget> options = _buildOptions(product.options);
+      List<Widget> options = _buildOptions(widget.product.options);
       return Column(
+        
         children: <Widget>[
-          Container(
-            width: MediaQuery.of(context).size.width,
-            height: 150,
-            child: Image.network(
-              product.image,
-              fit: BoxFit.fill,
-            ),
-          ),
-          Container(
-            width: MediaQuery.of(context).size.width,
-            color: Theme.of(context).primaryColor,
-            padding: EdgeInsets.all(6.0),
-            child: Text(
-              product.name,
-              style: Theme.of(context).textTheme.title,
-              textAlign: TextAlign.center,
-            ),
-          ),
           ButtonBar(
             alignment: MainAxisAlignment.center,
             children: <Widget>[
@@ -451,12 +455,23 @@ class _ProductPageState extends State<ProductPage> {
                   padding: EdgeInsets.all(8.0),
                   color: Theme.of(context).primaryColor,
                   child: Text(
-                    "Add to Cart ($total)",
+                    "Add to Cart (\$"+ total.toStringAsFixed(2) + ")",
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.white, fontSize: 20.0),
                   ),
                   onPressed: () {
-                    addProduct(p, quantity);
+                    if(_radioValue1 == -1) {
+                      //They didnt select one display a toast
+                      Fluttertoast.showToast(
+                        msg: "You need to select a Flavor.",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.CENTER,
+                      );
+                      return;
+                    } else {
+                      String flavor = flavors[_radioValue1];
+                      addProductWithFlavor(widget.product, quantity, flavor);
+                    }
                   }),
             ],
           )
@@ -464,17 +479,44 @@ class _ProductPageState extends State<ProductPage> {
       );
     }
   }
+  List<Widget> _buildOptions(String options) {
+    List<Widget> optionList = new List();
+    RegExp exp = new RegExp(r"#(\w+\s*\w*)");
+    Iterable<RegExpMatch> matches = exp.allMatches(options);
+    for (int i = 0; i < matches.length; i++) {
+      String option = matches.elementAt(i).group(1);
+      flavors.add(option);
+      Widget row = new Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Radio(
+            value: i,
+            groupValue: _radioValue1,
+            onChanged: _handleRadioValueChange5,
+          ),
+          Text(option),
+        ],
+      );
+      optionList.add(row);
+    }
+    return optionList;
+  }
 
+  void _handleRadioValueChange5(int value) {
+    setState(() {
+      _radioValue1 = value;
+    });
+  }
   void increaseQuantity() {
     setState(() {
-      total = ++quantity * p.price;
+      total = ++quantity * widget.product.price;
     });
   }
 
   void decreaseQuantity() {
     if (quantity > 0) {
       setState(() {
-        total = --quantity * p.price;
+        total = --quantity * widget.product.price;
       });
     }
   }
@@ -512,6 +554,12 @@ class _CartPageState extends State<CartPage> {
                -Add an option to remove from cart
                */
               itemBuilder: (BuildContext ctxt, int index) {
+                String name;
+                if(globals.cart[index].hasFlavor()) {
+                  name = globals.cart[index].product.name + "\n(" + globals.cart[index].flavor + ")";
+                } else {
+                  name = globals.cart[index].product.name;
+                }
                 return Container(
                   padding: EdgeInsets.only(
                       left: 16.0, right: 16.0, top: 10.0, bottom: 6.0),
@@ -525,7 +573,7 @@ class _CartPageState extends State<CartPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Text(
-                        globals.cart[index].product.name,
+                        name,
                         textAlign: TextAlign.left,
                         textScaleFactor: 1.4,
                       ),
@@ -582,6 +630,9 @@ class _CartPageState extends State<CartPage> {
 }
 
 void addProduct(globals.Product product, int quantity) {
+  if(quantity == 0 ) {
+    return;
+  }
   var newPurchase = new globals.Purchase(product, quantity);
   for (int i = 0; i < globals.cart.length; i++) {
     if (globals.cart[i].product.name == product.name) {
@@ -589,8 +640,18 @@ void addProduct(globals.Product product, int quantity) {
     }
   }
   globals.cart.add(newPurchase);
-
-  print("Added Product");
+}
+void addProductWithFlavor(globals.Product product, int quantity,String flavor) {
+  if(quantity == 0) {
+    return;
+  }
+  var newPurchase = new globals.Purchase.withFlavor(product, quantity, flavor);
+  for (int i = 0; i < globals.cart.length; i++) {
+    if (globals.cart[i].product.name == product.name) {
+      globals.cart.removeAt(i);
+    }
+  }
+  globals.cart.add(newPurchase);
 }
 
 void goToCart(BuildContext context) {

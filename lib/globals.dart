@@ -61,5 +61,16 @@ class Product {
 class Purchase {
   Product product;
   int quantity;
-  Purchase(this.product, this.quantity);
+  String flavor;
+  Purchase(this.product, this.quantity) {
+    this.flavor = "None";
+  }
+  Purchase.withFlavor(this.product, this.quantity, this.flavor);
+  bool hasFlavor() {
+    if(this.flavor == "None") {
+      return false;
+    } else {
+      return true;
+    }
+  }
 }
