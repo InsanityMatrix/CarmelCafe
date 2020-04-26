@@ -16,6 +16,10 @@ String cartJSON() {
   return jsonEncode(cart);
 }
 
+Future<void> sendOrder(String name, String studentID, String orderJSON) async {
+  var url = ip + '/order';
+  http.post(url,body: {"Name":name,"StudentID": studentID, "Order": orderJSON});
+}
 Future<List<Section>> getSections() async {
   var url = ip + '/products';
   var response = await http.get(url);

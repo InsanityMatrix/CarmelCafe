@@ -700,7 +700,7 @@ class _CompleteOrderState extends State<CompleteOrder> {
                     ),
                     RaisedButton(
                       child: Text("Order Now"),
-                      onPressed: () {
+                      onPressed: () async {
                         if(_formKey.currentState.validate()) {
                           Scaffold.of(context).showSnackBar(
                             SnackBar(content: Text('Submitting Order...')),
@@ -708,16 +708,14 @@ class _CompleteOrderState extends State<CompleteOrder> {
                           String name = nameController.text;
                           String studentID = studentIDController.text;
                           String orderJSON = globals.cartJSON();
-                          print(name);
-                          print(studentID);
-                          print(orderJSON);
+                          
+                          globals.sendOrder(name,studentID,orderJSON);
 
                           globals.cart.clear();
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(builder: (context) => MyHomePage(title: "Carmel Cafe")),
                           );
-                          //TODO: Send this data to api to make the square order
                         }
                       }
                     )
