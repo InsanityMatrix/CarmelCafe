@@ -1,4 +1,4 @@
-package com.dvpie.carmel_cafe
+package com.dvpie.carmelCafe
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity
